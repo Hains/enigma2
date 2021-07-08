@@ -71,7 +71,7 @@ while : ; do
 			/sbin/reboot
 			;;
 		3)
-			DEBUG_LVL=3
+			ENIGMA_DEBUG_LVL=3
 			;;
 		4)
 			/sbin/rmmod lcd
@@ -87,7 +87,7 @@ while : ; do
 			fi
 			;;
 		6)
-			DEBUG_LVL=4
+			ENIGMA_DEBUG_LVL="4"
 			;;
 		7)
 			rm -R /etc/enigma2
