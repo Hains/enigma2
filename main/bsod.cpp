@@ -112,6 +112,7 @@ bool bsodRestart()
 {
 	return bsodrestart;
 }
+
 void bsodFatal(const char *component)
 {
 	//handle python crashes	
@@ -127,15 +128,16 @@ void bsodFatal(const char *component)
 	if ((bsodmax && bsodcnt > bsodmax) || component || bsodcnt > bsodmaxmax)
 		bsodpython = false;
 	if (bsodpython && bsodcnt-1 && bsodcnt > bsodhide && (!bsodmax || bsodcnt < bsodmax) && bsodcnt < bsodmaxmax)
-	{
+	{	
 		sleep(1);
 		return;
-	}
+	}	
 	bsodrestart = true;
 
 	/* show no more than one bsod while shutting down/crashing */
 	if (bsodhandled) {
 		if (component) {
+			eSyncLog();
 			sleep(1);
 			raise(SIGKILL);
 		}
@@ -233,9 +235,11 @@ void bsodFatal(const char *component)
 	{
 		bsodrestart = false;
 		bsodhandled = false;
+		eSyncLog();
 		sleep(1);
 		return;
 	}
+
 	ePtr<gMainDC> my_dc;
 	gMainDC::getInstance(my_dc);
 
@@ -244,11 +248,11 @@ void bsodFatal(const char *component)
 	p.resetClip(eRect(ePoint(0, 0), my_dc->size()));
 	p.setBackgroundColor(gRGB(0x008000));
 	p.setForegroundColor(gRGB(0xFFFFFF));
+	p.clear();
 
 	int hd =  my_dc->size().width() == 1920;
 	ePtr<gFont> font = new gFont("Regular", hd ? 30 : 20);
 	p.setFont(font);
-	p.clear();
 
 	eRect usable_area = eRect(hd ? 30 : 100, hd ? 30 : 70, my_dc->size().width() - (hd ? 60 : 150), hd ? 150 : 100);
 
@@ -257,17 +261,17 @@ void bsodFatal(const char *component)
 	os_text.clear();
 
 	if (!bsodpython)
-	{
+	{	
 		os_text << "We are really sorry. Your receiver encountered "
 			"a software problem, and needs to be restarted.\n"
 			"Please send the logfile " << crashlog_name << " to " << crash_emailaddr << ".\n"
 			"Your receiver restarts in 10 seconds!\n"
 			"Component: " << component;
-
+	
 		os << getConfigString("config.crash.debug_text", os_text.str());
 	}
 	else
-	{
+	{	
 		std::string txt;
 		if (!bsodmax && bsodcnt < bsodmaxmax)
 			txt = "not (max " + std::to_string(bsodmaxmax) + " times)";	
@@ -349,7 +353,7 @@ void bsodFatal(const char *component)
 	 */
 
 	if (bsodpython)
-	{
+	{	
 		bsodrestart = false;
 		bsodhandled = false;
 		p.setBackgroundColor(gRGB(0,0,0,0xFF));
