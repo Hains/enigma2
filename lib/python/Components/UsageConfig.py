@@ -534,11 +534,11 @@ def InitUsageConfig():
 
 	config.crash = ConfigSubsection()
 	#// handle python crashes
-	config.crash.bsodpython = ConfigYesNo(default=True)
-	config.crash.bsodpython_ready = NoSave(ConfigYesNo(default=False))
+	config.crash.bsodpython = ConfigYesNo(default = True)
+	config.crash.bsodpython_ready = NoSave(ConfigYesNo(default = False))
 	choicelist = [("0", _("never")), ("1", "1"), ("2", "2"), ("3", "3"), ("4", "4"), ("5", "5"), ("6", "6"), ("7", "7"), ("8", "8"), ("9", "9"), ("10", "10")]
-	config.crash.bsodhide = ConfigSelection(default="1", choices=choicelist)
-	config.crash.bsodmax = ConfigSelection(default="3", choices=choicelist)
+	config.crash.bsodhide = ConfigSelection(default = "1", choices = choicelist)
+	config.crash.bsodmax = ConfigSelection(default = "3", choices = choicelist)
 	#//
 
 	config.crash.enabledebug = ConfigYesNo(default=False)
