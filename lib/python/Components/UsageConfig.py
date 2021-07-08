@@ -534,11 +534,11 @@ def InitUsageConfig():
 
 	config.crash = ConfigSubsection()
 	#// handle python crashes
-	config.crash.bsodpython = ConfigYesNo(default = True)
-	config.crash.bsodpython_ready = NoSave(ConfigYesNo(default = False))
+	config.crash.bsodpython = ConfigYesNo(default=True)
+	config.crash.bsodpython_ready = NoSave(ConfigYesNo(default=False))
 	choicelist = [("0", _("never")), ("1", "1"), ("2", "2"), ("3", "3"), ("4", "4"), ("5", "5"), ("6", "6"), ("7", "7"), ("8", "8"), ("9", "9"), ("10", "10")]
-	config.crash.bsodhide = ConfigSelection(default = "1", choices = choicelist)
-	config.crash.bsodmax = ConfigSelection(default = "3", choices = choicelist)
+	config.crash.bsodhide = ConfigSelection(default="1", choices=choicelist)
+	config.crash.bsodmax = ConfigSelection(default="3", choices=choicelist)
 	#//
 
 	config.crash.enabledebug = ConfigYesNo(default=False)
@@ -555,21 +555,21 @@ def InitUsageConfig():
 				debugpath.append((p.mountpoint + 'logs/', d))
 	config.crash.debugPath = ConfigSelection(default="/home/root/logs/", choices=debugpath)
 	if not os.path.exists("/home"):
-		os.mkdir("/home", 0o755)
+		os.mkdir("/home", 0755)
 	if not os.path.exists("/home/root"):
-		os.mkdir("/home/root", 0o755)
+		os.mkdir("/home/root", 0755)
 
 	def updatedebugPath(configElement):
 		if not os.path.exists(config.crash.debugPath.value):
 			try:
-				os.mkdir(config.crash.debugPath.value, 0o755)
+				os.mkdir(config.crash.debugPath.value, 0755)
 			except:
-				print("Failed to create log path: %s" % config.crash.debugPath.value)
+				print "Failed to create log path: %s" % config.crash.debugPath.value
 	config.crash.debugPath.addNotifier(updatedebugPath, immediate_feedback=False)
 
 	crashlogheader = _("We are really sorry. Your receiver encountered "
 					 "a software problem, and needs to be restarted.\n"
-					 "Please send the logfile %senigma2_crash_xxxxxx.log to https://github.com/Hains/enigma2.\n"
+					 "Please send the logfile %senigma2_crash_xxxxxx.log to www.opena.tv.\n"
 					 "Your receiver restarts in 10 seconds!\n"
 					 "Component: enigma2") % config.crash.debugPath.value
 	config.crash.debug_text = ConfigText(default=crashlogheader, fixed_size=False)
