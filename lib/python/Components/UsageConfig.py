@@ -547,13 +547,13 @@ def InitUsageConfig():
 	config.crash.sizeloglimit = ConfigSelectionNumber(min=1, max=20, stepwidth=1, default=10, wraparound=True)
 	config.crash.lastfulljobtrashtime = ConfigInteger(default=-1)
 
-	debugpath = [('/home/root/logs/', '/home/root/')]
+	debugPath = [('/home/root/logs/', '/home/root/')]
 	for p in harddiskmanager.getMountedPartitions():
 		if os.path.exists(p.mountpoint):
 			d = os.path.normpath(p.mountpoint)
 			if p.mountpoint != '/':
-				debugpath.append((p.mountpoint + 'logs/', d))
-	config.crash.debugPath = ConfigSelection(default="/home/root/logs/", choices=debugpath)
+				debugPath.append((p.mountpoint + '/logs/', d))
+	config.crash.debugPath = ConfigSelection(default="/home/root/logs/", choices=debugPath)
 	if not os.path.exists("/home"):
 		os.mkdir("/home", 0755)
 	if not os.path.exists("/home/root"):
