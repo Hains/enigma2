@@ -339,6 +339,7 @@ void bsodFatal(const char *component)
 		usable_area = eRect(hd ? 30 : 100, hd ? 180 : 170, my_dc->size().width() - (hd ? 60 : 180), my_dc->size().height() - (hd ? 30 : 20));
 		p.renderText(usable_area, logtail, gPainter::RT_HALIGN_LEFT);
 	}
+	eSyncLog();
 	sleep(10);
 
 	/*
