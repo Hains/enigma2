@@ -5,8 +5,8 @@
 extern "C" void init_enigma();
 extern "C" void eBaseInit(void);
 extern "C" void eConsoleInit(void);
-extern void bsodFatal(const char *component);
 extern void quitMainloop(int exitCode);
+extern void bsodFatal(const char *component);
 extern bool bsodRestart();
 
 #define SKIP_PART2
