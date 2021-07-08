@@ -127,10 +127,10 @@ void bsodFatal(const char *component)
 	if ((bsodmax && bsodcnt > bsodmax) || component || bsodcnt > bsodmaxmax)
 		bsodpython = false;
 	if (bsodpython && bsodcnt-1 && bsodcnt > bsodhide && (!bsodmax || bsodcnt < bsodmax) && bsodcnt < bsodmaxmax)
-	{	
+	{
 		sleep(1);
 		return;
-	}	
+	}
 	bsodrestart = true;
 
 	/* show no more than one bsod while shutting down/crashing */
