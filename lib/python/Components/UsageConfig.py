@@ -586,7 +586,7 @@ def InitUsageConfig():
 			StackTracePrinter.getInstance().deactivate()
 
 	config.crash.pystackonspinner = ConfigYesNo(default=True)
-	config.crash.pystackonspinner.addNotifier(updateStackTracePrinter, immediate_feedback=False, call_on_save_or_cancel=True, initial_call=True)
+	config.crash.pystackonspinner.addNotifier(updateStackTracePrinter, immediate_feedback=False, initial_call=True)
 
 	config.seek = ConfigSubsection()
 	config.seek.selfdefined_13 = ConfigNumber(default=15)
