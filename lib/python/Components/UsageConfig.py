@@ -13,6 +13,10 @@ import time
 import locale
 import skin
 
+from boxbranding import getDisplayType
+
+displaytype = getDisplayType()
+
 
 def InitUsageConfig():
 	config.usage = ConfigSubsection()
@@ -405,6 +409,14 @@ def InitUsageConfig():
 	config.usage.show_channel_numbers_in_servicelist.addNotifier(refreshServiceList)
 
 	config.usage.blinking_display_clock_during_recording = ConfigYesNo(default=False)
+
+	if displaytype == "textlcd" or "text" in displaytype:
+		config.usage.blinking_rec_symbol_during_recording = ConfigSelection(default="Channel", choices=[
+			("Rec", _("REC symbol")),
+			("RecBlink", _("Blinking REC symbol")),
+			("Channel", _("Channel name"))
+		])
+	config.usage.blinking_rec_symbol_during_recording = ConfigYesNo(default=True)
 
 	config.usage.show_message_when_recording_starts = ConfigYesNo(default=True)
 
