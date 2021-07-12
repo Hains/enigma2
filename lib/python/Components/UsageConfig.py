@@ -15,7 +15,6 @@ import skin
 
 
 def InitUsageConfig():
-	config.misc.useNTPminutes = ConfigSelection(default = "30", choices = [("30", "30" + " " +_("minutes")), ("60", _("Hour")), ("1440", _("Once per day"))])
 	config.usage = ConfigSubsection()
 	if fileHas("/etc/network/interfaces","iface eth0 inet static") and not fileHas("/etc/network/interfaces","iface wlan0 inet dhcp") or fileHas("/etc/network/interfaces","iface wlan0 inet static") and fileHas("/run/ifstate","wlan0=wlan0"):
 		config.usage.dns = ConfigSelection(default = "custom", choices = [("custom", _("Static IP or Custom")), ("google", _("Google DNS")), ("cloadflare", _("Cloadfare")), ("opendns-familyshield", _("OpenDNS FamilyShield")), ("opendns-home", _("OpenDNS Home"))])
@@ -1324,6 +1323,7 @@ def InitUsageConfig():
 	])
 	config.ntp.timesync.addNotifier(timesyncChanged)
 	config.ntp.server = ConfigText("pool.ntp.org", fixed_size=False)
+	config.ntp.useNTPminutes = ConfigSelection(default = "30", choices = [("30", "30" + " " +_("minutes")), ("60", _("Hour")), ("1440", _("Once per day"))])
 
 
 def updateChoices(sel, choices):
