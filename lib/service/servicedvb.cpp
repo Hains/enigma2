@@ -1,4 +1,5 @@
 #include <lib/base/eerror.h>
+#include <lib/base/nconfig.h>
 #include <lib/base/object.h>
 #include <string>
 #include <lib/service/servicedvb.h>
@@ -1230,7 +1231,8 @@ void eDVBServicePlay::serviceEvent(int event)
 		if (m_timeshift_enabled)
 			updateTimeshiftPids();
 
-		if (m_csa_session && !m_csa_session->isEcmAnalyzed())
+		bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam.softcsa", false);
+		if (SoftCSA == true && m_csa_session && !m_csa_session->isEcmAnalyzed())
 		{
 			eDVBServicePMTHandler::program program;
 			if (m_service_handler.getProgramInfo(program) == 0 && !program.caids.empty())

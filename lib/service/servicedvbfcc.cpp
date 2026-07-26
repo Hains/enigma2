@@ -94,7 +94,8 @@ void eDVBServiceFCCPlay::serviceEvent(int event)
 
 				// If session exists but ECM monitor not started yet, start it
 				// (Session was created by setupSpeculativeDescrambling() in eventTuned)
-				if (m_csa_session && !m_csa_session->isEcmAnalyzed())
+				bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam.softcsa", false);
+				if (SoftCSA == true && m_csa_session && !m_csa_session->isEcmAnalyzed())
 				{
 					eDVBServicePMTHandler::program program;
 					if (m_service_handler.getProgramInfo(program) == 0 && !program.caids.empty())
@@ -616,6 +617,7 @@ void eDVBServiceFCCPlay::activateFCCCSASession()
 
 	// Check if CSA-ALT was detected during prepare phase
 	// isCsaAlt() returns true only if CSA-ALT was actually detected (not just analyzed)
+	bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam.softcsa", false);
 	if (m_csa_session->isCsaAlt())
 	{
 		eDebug("[eDVBServiceFCCPlay] CSA-ALT was detected, activating session for decoding");
@@ -626,7 +628,7 @@ void eDVBServiceFCCPlay::activateFCCCSASession()
 
 		// SoftDecoder will be started in updateFCCDecoder() when it sees the active session
 	}
-	else if (m_csa_session->isEcmAnalyzed())
+	else if (SoftCSA == true && m_csa_session->isEcmAnalyzed())
 	{
 		eDebug("[eDVBServiceFCCPlay] ECM analyzed but no CSA-ALT, using HW descrambling");
 	}
