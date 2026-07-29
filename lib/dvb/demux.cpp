@@ -488,6 +488,32 @@ int eDVBRecordFileThread::getFirstPTS(pts_t &pts)
 
 int eDVBRecordFileThread::AsyncIO::wait(const volatile int* stop_flag, int* short_write_count)
 {
+	bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
+	if (SoftCSA == false) { // NO CSA
+		if (aio.aio_buf != NULL) // Only if we had a request outstanding
+		{
+			while (aio_error(&aio) == EINPROGRESS)
+			{
+				eDebug("[eDVBRecordFileThread] Waiting for I/O to complete");
+				struct aiocb* paio = &aio;
+				int r = aio_suspend(&paio, 1, NULL);
+				if (r < 0)
+				{
+					eWarning("[eDVBRecordFileThread] aio_suspend failed: %m");
+					return -1;
+				}
+			}
+			int r = aio_return(&aio);
+			aio.aio_buf = NULL;
+			if (r < 0)
+			{
+				eWarning("[eDVBRecordFileThread] wait: aio_return returned failure: %m");
+				return -1;
+			}
+		}
+		return 0;
+	}
+	else { // CSA
 	if (aio.aio_buf == nullptr) // No request outstanding
 		return 0;
 
@@ -577,6 +603,7 @@ int eDVBRecordFileThread::AsyncIO::wait(const volatile int* stop_flag, int* shor
 		aio.aio_buf = NULL;
 		return 0;
 	}
+	}
 }
 
 int eDVBRecordFileThread::AsyncIO::cancel(int fd)
@@ -600,17 +627,20 @@ int eDVBRecordFileThread::AsyncIO::poll(int* short_write_count)
 
 	int r = aio_return(&aio);
 
-	if (r >= 0 && (size_t)r != aio.aio_nbytes)
-	{ // short write
-		if (short_write_count)
-			++(*short_write_count);
-		eDebug("[eDVBRecordFileThread] short write: %d of bytes %zu written -> retry", r, aio.aio_nbytes);
-		aio.aio_nbytes -= r;
-		aio.aio_offset += r;
-		aio.aio_buf = (volatile void*)((const char*)aio.aio_buf + r);
-		if (aio_write(&aio) < 0)
-			return -1;
-		return 1;
+	bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
+	if (SoftCSA == true) {
+		if (r >= 0 && (size_t)r != aio.aio_nbytes)
+		{ // short write
+			if (short_write_count)
+				++(*short_write_count);
+			eDebug("[eDVBRecordFileThread] short write: %d of bytes %zu written -> retry", r, aio.aio_nbytes);
+			aio.aio_nbytes -= r;
+			aio.aio_offset += r;
+			aio.aio_buf = (volatile void*)((const char*)aio.aio_buf + r);
+			if (aio_write(&aio) < 0)
+				return -1;
+			return 1;
+		}
 	}
 
 	aio.aio_buf = NULL;
@@ -728,6 +758,49 @@ int eDVBRecordFileThread::asyncWrite(int len)
 
 int eDVBRecordFileThread::writeData(int len)
 {
+	bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
+	if (SoftCSA == false) {
+		if(m_sync_mode)
+		{
+			struct pollfd pfd = {};
+
+			pfd.fd = m_fd_dest;
+			pfd.events = POLLOUT;
+			poll(&pfd, 1, -1);
+
+			len = write(m_fd_dest, m_buffer, len);
+
+			if(len < 0)
+			{
+				eWarning("[eDVBRecordFileThread] writedata write error: %d %m", len);
+				return(len);
+			}
+
+			if(len == 0)
+			{
+				eWarning("[eDVBRecordFileThread] writedata write eof: %d %m", len);
+				return(len);
+			}
+		}
+		else
+		{
+			len = asyncWrite(len);
+			if (len < 0)
+			{
+				eWarning("[eDVBRecordFileThread] asyncwrite failed: %d", len);
+				return len;
+			}
+			// Wait for previous aio to complete on this buffer before returning
+			int r = m_current_buffer->wait();
+			if (r < 0)
+			{
+				eWarning("[eDVBRecordFileThread] wait failed: %d\n", len);
+				return -1;
+			}
+		}
+		return(len);
+	} else {
+	// CSA
 	if (!len || !m_buffer)
 		return 0;
 
@@ -858,10 +931,34 @@ int eDVBRecordFileThread::writeData(int len)
 		}
 		return len;
 	}
+	}
 }
 
 void eDVBRecordFileThread::flush()
 {
+	bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
+	if (SoftCSA == false) {
+		eDebug("[eDVBRecordFileThread] waiting for aio to complete");
+		for (AsyncIOvector::iterator it = m_aio.begin(); it != m_aio.end(); ++it)
+		{
+			it->wait();
+		}
+		int bufferCount = m_aio.size();
+		eDebug("[eDVBRecordFileThread] buffer usage histogram (%d buffers of %zd kB)", bufferCount, m_buffersize>>10);
+		for (int i=0; i <= bufferCount; ++i)
+		{
+			if (m_buffer_use_histogram[i] != 0)
+				eDebug("[eDVBRecordFileThread]  %2d: %6d", i, m_buffer_use_histogram[i]);
+		}
+		if (m_overflow_count)
+		{
+			eDebug("[eDVBRecordFileThread] Demux buffer overflows: %d", m_overflow_count);
+		}
+		if (m_fd_dest >= 0)
+		{
+			posix_fadvise(m_fd_dest, 0, 0, POSIX_FADV_DONTNEED);
+		}
+	} else { // CSA
 	eDebug("[eDVBRecordFileThread] waiting for aio to complete");
 	for (AsyncIOvector::iterator it = m_aio.begin(); it != m_aio.end(); ++it)
 	{
@@ -895,6 +992,7 @@ void eDVBRecordFileThread::flush()
 	if (m_fd_dest >= 0)
 	{
 		posix_fadvise(m_fd_dest, 0, 0, POSIX_FADV_DONTNEED);
+	}
 	}
 }
 
