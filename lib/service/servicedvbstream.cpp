@@ -88,7 +88,8 @@ void eDVBServiceStream::serviceEvent(int event)
 			doRecord();
 
 		// Retry ECM monitor start if session exists but CSA-ALT not yet detected
-		if (m_csa_session && !m_csa_session->isEcmAnalyzed())
+		bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
+		if (SoftCSA == true && m_csa_session && !m_csa_session->isEcmAnalyzed())
 		{
 			eDVBServicePMTHandler::program program;
 			if (m_service_handler.getProgramInfo(program) == 0)
@@ -202,6 +203,7 @@ int eDVBServiceStream::doRecord()
 	eDVBServicePMTHandler::program program;
 	bool have_program_info = (m_service_handler.getProgramInfo(program) == 0);
 	bool is_encrypted = have_program_info && program.isCrypted();
+	bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
 
 	if (!m_record && m_tuned)
 	{
@@ -246,11 +248,13 @@ int eDVBServiceStream::doRecord()
 		m_record->connectEvent(sigc::mem_fun(*this, &eDVBServiceStream::recordEvent), m_con_record_event);
 
 		// Attach speculative software descrambler for encrypted channels
+		if (SoftCSA == true) {
 		setupSpeculativeDescrambler();
+		}
 	}
 
 	// Try to attach descrambler if not yet done (PMT might not have been available earlier)
-	if (m_record && !m_csa_session)
+	if (SoftCSA == true && m_record && !m_csa_session)
 	{
 		setupSpeculativeDescrambler();
 	}
