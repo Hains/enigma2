@@ -94,7 +94,7 @@ void eDVBServiceFCCPlay::serviceEvent(int event)
 
 				// If session exists but ECM monitor not started yet, start it
 				// (Session was created by setupSpeculativeDescrambling() in eventTuned)
-				bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam.softcsa", false);
+				bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
 				if (SoftCSA == true && m_csa_session && !m_csa_session->isEcmAnalyzed())
 				{
 					eDVBServicePMTHandler::program program;

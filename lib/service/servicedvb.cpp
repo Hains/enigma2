@@ -1231,7 +1231,7 @@ void eDVBServicePlay::serviceEvent(int event)
 		if (m_timeshift_enabled)
 			updateTimeshiftPids();
 
-		bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam.softcsa", false);
+		bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
 		if (SoftCSA == true && m_csa_session && !m_csa_session->isEcmAnalyzed())
 		{
 			eDVBServicePMTHandler::program program;

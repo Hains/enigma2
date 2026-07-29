@@ -545,7 +545,7 @@ int eDVBServiceRecord::doRecord()
 		{
 			// Check if channel needs software descrambling
 			bool is_encrypted = program.isCrypted();
-			bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam.softcsa", false);
+			bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
 			if (SoftCSA == true && is_encrypted && !m_use_software_descramble)
 			{
 				eDebug("[eDVBServiceRecord] Channel is encrypted, setting up software descrambler");

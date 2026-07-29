@@ -88,7 +88,7 @@ void eDVBServiceStream::serviceEvent(int event)
 			doRecord();
 
 		// Retry ECM monitor start if session exists but CSA-ALT not yet detected
-		bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam.softcsa", false);
+		bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
 		if (SoftCSA == true && m_csa_session && !m_csa_session->isEcmAnalyzed())
 		{
 			eDVBServicePMTHandler::program program;
@@ -203,7 +203,7 @@ int eDVBServiceStream::doRecord()
 	eDVBServicePMTHandler::program program;
 	bool have_program_info = (m_service_handler.getProgramInfo(program) == 0);
 	bool is_encrypted = have_program_info && program.isCrypted();
-	bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam.softcsa", false);
+	bool SoftCSA = eConfigManager::getConfigBoolValue("config.misc.softcam_softcsa", false);
 
 	if (!m_record && m_tuned)
 	{
