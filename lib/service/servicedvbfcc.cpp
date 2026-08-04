@@ -94,7 +94,7 @@ void eDVBServiceFCCPlay::serviceEvent(int event)
 
 				// If session exists but ECM monitor not started yet, start it
 				// (Session was created by setupSpeculativeDescrambling() in eventTuned)
-				if (m_csa_session && !m_csa_session->isEcmAnalyzed())
+				if (csa_is_auto() && m_csa_session && !m_csa_session->isEcmAnalyzed())
 				{
 					eDVBServicePMTHandler::program program;
 					if (m_service_handler.getProgramInfo(program) == 0 && !program.caids.empty())
@@ -365,7 +365,7 @@ void eDVBServiceFCCPlay::updateFCCDecoder(bool sendSeekableStateChanged)
 	m_timeshift_changed = 0;
 
 	// Check if SoftCSA should take over (CSA-ALT detected and session is active)
-	if (m_csa_session && m_csa_session->isActive() && m_soft_decoder)
+	if (((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && m_soft_decoder)
 	{
 		eDebug("[eDVBServiceFCCPlay] CSA-ALT active, SoftDecoder takes over from HW decoder");
 

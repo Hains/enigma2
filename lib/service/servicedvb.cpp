@@ -1,4 +1,5 @@
 #include <lib/base/eerror.h>
+#include <lib/base/nconfig.h>
 #include <lib/base/object.h>
 #include <string>
 #include <lib/service/servicedvb.h>
@@ -1230,7 +1231,7 @@ void eDVBServicePlay::serviceEvent(int event)
 		if (m_timeshift_enabled)
 			updateTimeshiftPids();
 
-		if (m_csa_session && !m_csa_session->isEcmAnalyzed())
+		if (csa_is_auto() && m_csa_session && !m_csa_session->isEcmAnalyzed())
 		{
 			eDVBServicePMTHandler::program program;
 			if (m_service_handler.getProgramInfo(program) == 0 && !program.caids.empty())
@@ -1248,9 +1249,9 @@ void eDVBServicePlay::serviceEvent(int event)
 		}
 
 		// Note: m_soft_decoder exists speculatively, but only blocks updateDecoder when session is active
-		if (!m_timeshift_active && !(m_csa_session && m_csa_session->isActive()))
+		if (!m_timeshift_active && !((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()))
 			updateDecoder();
-		else if (m_csa_session && m_csa_session->isActive())
+		else if ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist())
 		{
 			eDebug("[eDVBServicePlay] Skipping updateDecoder() - software descrambling active");
 
@@ -1475,7 +1476,7 @@ RESULT eDVBServicePlay::start()
 		}
 		m_event(this, evStart);
 	}
-	else if (!m_is_stream && scrambled)
+	else if (csa_is_auto() && !m_is_stream && scrambled)
 	{
 		// Setup speculative software descrambling for encrypted Live-TV
 		setupSpeculativeDescrambling();
@@ -1569,7 +1570,7 @@ RESULT eDVBServicePlay::setSlowMotion(int ratio)
 	setFastForward_internal(0);
 
 	// Check SoftDecoder first (only if session is active AND not in timeshift playback)
-	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && !m_timeshift_active)
+	if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && !m_timeshift_active)
 	{
 		ret = m_soft_decoder->setSlowMotion(ratio);
 		if (!ret)
@@ -1636,7 +1637,7 @@ RESULT eDVBServicePlay::setFastForward_internal(int ratio, bool final_seek)
 	m_fastforward = ffratio;
 
 	// Check SoftDecoder first (only if session is active AND not in timeshift playback)
-	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && !m_timeshift_active)
+	if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && !m_timeshift_active)
 	{
 		if (ffratio == 0)
 			; /* return m_soft_decoder->play(); is done in caller*/
@@ -1701,7 +1702,7 @@ RESULT eDVBServicePlay::pause()
 	setFastForward_internal(0, m_slowmotion || m_fastforward > 1);
 
 	// Check SoftDecoder first (only if session is active AND not in timeshift playback)
-	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && !m_timeshift_active)
+	if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && !m_timeshift_active)
 	{
 		m_slowmotion = 0;
 		m_is_paused = 1;
@@ -1723,7 +1724,7 @@ RESULT eDVBServicePlay::unpause()
 	setFastForward_internal(0, m_slowmotion || m_fastforward > 1);
 
 	// Check SoftDecoder first (only if session is active AND not in timeshift playback)
-	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && !m_timeshift_active)
+	if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && !m_timeshift_active)
 	{
 		m_slowmotion = 0;
 		m_is_paused = 0;
@@ -1803,7 +1804,7 @@ RESULT eDVBServicePlay::getPlayPosition(pts_t &pos)
 	int r = 0;
 
 	// Check SoftDecoder only if session is active AND not in timeshift playback
-	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && !m_timeshift_active)
+	if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && !m_timeshift_active)
 	{
 		r = m_soft_decoder->getPTS(0, pos);
 		if (r)
@@ -1816,7 +1817,7 @@ RESULT eDVBServicePlay::getPlayPosition(pts_t &pos)
 			return r;
 	}
 
-	ePtr<iTSMPEGDecoder> decoder = (m_soft_decoder && m_csa_session && m_csa_session->isActive() && !m_timeshift_active)
+	ePtr<iTSMPEGDecoder> decoder = (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && !m_timeshift_active)
 		? m_soft_decoder->getDecoder() : m_decoder;
 
 		/* fixup */
@@ -2017,29 +2018,29 @@ int eDVBServicePlay::getInfo(int w)
 	switch (w)
 	{
 	case sVideoHeight:
-		if (m_soft_decoder && m_csa_session && m_csa_session->isActive()) return m_soft_decoder->getVideoHeight();
+		if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist())) return m_soft_decoder->getVideoHeight();
 		if (m_decoder) return m_decoder->getVideoHeight();
 		else if (m_soft_decoder) return m_soft_decoder->getVideoHeight();
 		break;
 	case sVideoWidth:
-		if (m_soft_decoder && m_csa_session && m_csa_session->isActive()) return m_soft_decoder->getVideoWidth();
+		if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist())) return m_soft_decoder->getVideoWidth();
 		if (m_decoder) return m_decoder->getVideoWidth();
 		else if (m_soft_decoder) return m_soft_decoder->getVideoWidth();
 		break;
 	case sFrameRate:
-		if (m_soft_decoder && m_csa_session && m_csa_session->isActive()) return m_soft_decoder->getVideoFrameRate();
+		if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist())) return m_soft_decoder->getVideoFrameRate();
 		if (m_decoder) return m_decoder->getVideoFrameRate();
 		else if (m_soft_decoder) return m_soft_decoder->getVideoFrameRate();
 		break;
 	case sProgressive:
-		if (m_soft_decoder && m_csa_session && m_csa_session->isActive()) return m_soft_decoder->getVideoProgressive();
+		if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist())) return m_soft_decoder->getVideoProgressive();
 		if (m_decoder) return m_decoder->getVideoProgressive();
 		else if (m_soft_decoder) return m_soft_decoder->getVideoProgressive();
 		break;
 	case sAspect:
 	{
 		int aspect = -1;
-		if (m_soft_decoder && m_csa_session && m_csa_session->isActive())
+		if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()))
 			aspect = m_soft_decoder->getVideoAspect();
 		else if (m_decoder)
 			aspect = m_decoder->getVideoAspect();
@@ -2089,7 +2090,7 @@ int eDVBServicePlay::getInfo(int w)
 		break;
 	}
 	case sGamma:
-		if (m_soft_decoder && m_csa_session && m_csa_session->isActive()) return m_soft_decoder->getVideoGamma();
+		if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist())) return m_soft_decoder->getVideoGamma();
 		if (m_decoder) return m_decoder->getVideoGamma();
 		else if (m_soft_decoder) return m_soft_decoder->getVideoGamma();
 		break;
@@ -2097,7 +2098,7 @@ int eDVBServicePlay::getInfo(int w)
 		if (no_program_info) return false;
 		return program.isCrypted();
 	case sIsSoftCSA:
-		return (m_csa_session && m_csa_session->isActive());
+		return ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist());
 	case sIsDedicated3D:
 		if (m_dvb_service) return m_dvb_service->isDedicated3D();
 		return false;
@@ -2799,7 +2800,7 @@ RESULT eDVBServicePlay::startTimeshift()
 	m_record->enableAccessPoints(false); // no need for AP information during shift
 
 	// If software descrambling is active, create a SEPARATE CSA session for timeshift
-	if (m_csa_session && m_csa_session->isActive())
+	if ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist())
 	{
 		eDebug("[eDVBServicePlay] Creating CSA session for timeshift");
 
@@ -2847,7 +2848,7 @@ RESULT eDVBServicePlay::stopTimeshift(bool swToLive)
 	//    from a newly created live pipeline).
 	// 4. Switch to live (SoftDecoder can safely allocate resources).
 
-	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && m_soft_decoder->isRunning())
+	if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && m_soft_decoder->isRunning())
 		m_soft_decoder->stop();
 
 	// Now safe to detach and cleanup timeshift's CSA session
@@ -3138,7 +3139,7 @@ void eDVBServicePlay::switchToLive()
 
 	// If we have a CSA session that is active (algo=3), restart the SoftDecoder
 	// This is needed because we stopped SoftDecoder when switching to timeshift
-	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && !m_soft_decoder->isRunning())
+	if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && !m_soft_decoder->isRunning())
 	{
 		eDebug("[eDVBServicePlay] Restarting SoftDecoder after timeshift");
 		m_soft_decoder->start();
@@ -3211,7 +3212,7 @@ void eDVBServicePlay::switchToTimeshift()
 	// When SoftDecoder is active (algo=3), we need to stop it to free the decoder
 	// for timeshift playback. Timeshift uses its own CSA session for descrambling.
 	// We'll restart SoftDecoder when returning to live
-	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && m_soft_decoder->isRunning())
+	if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && m_soft_decoder->isRunning())
 	{
 		eDebug("[eDVBServicePlay] switchToTimeshift: Stopping SoftDecoder to free decoder for timeshift playback");
 		m_soft_decoder->stop();
@@ -3918,7 +3919,7 @@ int eDVBServicePlay::getAC3Delay()
 {
 	if (m_dvb_service)
 		return m_dvb_service->getCacheEntry(eDVBService::cAC3DELAY);
-	else if (m_soft_decoder && m_csa_session && m_csa_session->isActive())
+	else if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()))
 		return m_soft_decoder->getAC3Delay();
 	else if (m_decoder)
 		return m_decoder->getAC3Delay();
@@ -3931,7 +3932,7 @@ int eDVBServicePlay::getPCMDelay()
 {
 	if (m_dvb_service)
 		return m_dvb_service->getCacheEntry(eDVBService::cPCMDELAY);
-	else if (m_soft_decoder && m_csa_session && m_csa_session->isActive())
+	else if (m_soft_decoder && ((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()))
 		return m_soft_decoder->getPCMDelay();
 	else if (m_decoder)
 		return m_decoder->getPCMDelay();
@@ -3968,7 +3969,7 @@ void eDVBServicePlay::video_event(struct iTSMPEGDecoder::videoEvent event)
 		case iTSMPEGDecoder::videoEvent::eventSizeChanged:
 			// For SoftCSA: Send evUpdatedInfo on first video size event
 			// This is needed because some skins query video resolution only on evUpdatedInfo
-			if (m_csa_session && m_csa_session->isActive() && !m_soft_decoder_video_info_valid)
+			if (((m_csa_session && m_csa_session->isActive()) || csa_from_whitelist()) && !m_soft_decoder_video_info_valid)
 			{
 				eDebug("[eDVBServicePlay] SoftCSA: First video size event, sending evUpdatedInfo to skin");
 				m_soft_decoder_video_info_valid = true;
