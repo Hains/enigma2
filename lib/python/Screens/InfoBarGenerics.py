@@ -199,12 +199,11 @@ class InfoBarWhitelists:
 	def softCSAChecker(self, playref):
 		if config.misc.softcam_softcsa.value == 1:
 			playrefstring, renamestring = self.splitref(playref.toString())
-			playref = eServiceReference("%s%s%s:%s" % (playrefstring, url.replace(":", "%3a"), playrefstring.replace(":", "%3a"), renamestring or ServiceReference(playref).getServiceName()))
 			if playrefstring in self.__srefs:
-				print(f"[{self.__class__.__name__}] Play service {playref.toString()} via softcsa")
+				# print(f"[{self.__class__.__name__}] Play service {playref.toString()} via softcsa")
 				config.misc.softcam_use_softcsa.value = True
 			else:
-				print(f"[{self.__class__.__name__}] Play service {playref.toString()} via hw descrambling")
+				# print(f"[{self.__class__.__name__}] Play service {playref.toString()} via hw descrambling")
 				config.misc.softcam_use_softcsa.value = False
 		else:
 			config.misc.softcam_use_softcsa.value = False
