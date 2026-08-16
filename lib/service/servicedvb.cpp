@@ -1231,7 +1231,7 @@ void eDVBServicePlay::serviceEvent(int event)
 		if (m_timeshift_enabled)
 			updateTimeshiftPids();
 
-		if (csa_is_auto() && m_csa_session && !m_csa_session->isEcmAnalyzed())
+		if ((csa_is_auto() || csa_from_whitelist()) && m_csa_session && !m_csa_session->isEcmAnalyzed())
 		{
 			eDVBServicePMTHandler::program program;
 			if (m_service_handler.getProgramInfo(program) == 0 && !program.caids.empty())
