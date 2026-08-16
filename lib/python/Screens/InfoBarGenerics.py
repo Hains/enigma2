@@ -197,7 +197,7 @@ class InfoBarStreamRelay:
 		elif config.misc.softcam_softcsa.value == 1:
 			if playrefstring in self.__srefs:
 				config.misc.softcam_use_softcsa.value = True
-				print(f"[{self.__class__.__name__}] Play service {playref.toString()} via streamrelay")
+				print(f"[{self.__class__.__name__}] Play service {playref.toString()} with softcsa")
 				playref.setCompareSref(playrefstring, True)
 		return playref, is_stream_relay
 
