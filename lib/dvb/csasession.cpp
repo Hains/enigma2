@@ -174,7 +174,6 @@ void eDVBCSASession::startECMMonitor(iDVBDemux *demux, uint16_t ecm_pid, uint16_
 		uint64_t svc_key = makeServiceKey(m_service_ref);
 		auto& cached = s_csa_cache[svc_key];
 		cached.is_csa_alt = true;
-		cached.ecm_mode = new_ecm_mode;
 		cached.valid = true;
 
 		m_ecm_analyzed = true;
