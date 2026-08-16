@@ -246,7 +246,7 @@ int eDVBServiceStream::doRecord()
 		m_record->connectEvent(sigc::mem_fun(*this, &eDVBServiceStream::recordEvent), m_con_record_event);
 
 		// Attach speculative software descrambler for encrypted channels
-		if (csa_is_auto()) {
+		if (csa_is_auto() || csa_from_whitelist()) {
 			setupSpeculativeDescrambler();
 		}
 	}
