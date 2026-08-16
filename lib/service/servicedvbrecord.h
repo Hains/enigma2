@@ -79,6 +79,7 @@ private:
 	ePtr<eDVBCSASession> m_csa_session;
 	bool m_use_software_descramble;
 	bool csa_is_auto() { return eConfigManager::getConfigIntValue("config.misc.softcam_softcsa", 0) == 2; }
+	bool csa_from_whitelist() { return eConfigManager::getConfigBoolValue("config.misc.softcam_use_softcsa", false) == true; }
 
 	int setupSoftwareDescrambler(eDVBServicePMTHandler::program& program);
 
