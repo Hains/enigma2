@@ -165,6 +165,37 @@ void eDVBCSASession::startECMMonitor(iDVBDemux *demux, uint16_t ecm_pid, uint16_
 		return;
 	}
 
+    // Test
+	if (csa_from_whitelist())
+	{
+		eDebug("[eDVBCSASession] CSA-ALT detection by whitelist! Activating software descrambling");
+
+		// Update unified cache (preserve serviceId if already known)
+		uint64_t svc_key = makeServiceKey(m_service_ref);
+		auto& cached = s_csa_cache[svc_key];
+		cached.is_csa_alt = is_csa_alt;
+		cached.ecm_mode = new_ecm_mode;
+		cached.valid = true;
+
+		m_ecm_analyzed = true;
+		m_csa_alt = true;
+
+		if (!m_active)
+		{
+			if (shouldSuppressActivation && shouldSuppressActivation())
+			{
+				eDebug("[eDVBCSASession] Activation suppressed (CI module handles decryption)");
+			}
+			else
+			{
+				setActive(true);
+			}
+		}
+
+		stopECMMonitor();
+		return;
+	}
+
 	// Create section reader
 	ePtr<iDVBSectionReader> reader;
 	if (demux->createSectionReader(eApp, reader) != 0 || !reader)
