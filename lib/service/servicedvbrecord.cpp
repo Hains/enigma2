@@ -545,7 +545,7 @@ int eDVBServiceRecord::doRecord()
 		{
 			// Check if channel needs software descrambling
 			bool is_encrypted = program.isCrypted();
-			if (csa_is_auto() && m_csa_session && is_encrypted && !m_use_software_descramble)
+			if ((csa_is_auto() || csa_from_whitelist()) && m_csa_session && is_encrypted && !m_use_software_descramble)
 			{
 				eDebug("[eDVBServiceRecord] Channel is encrypted, setting up software descrambler");
 				setupSoftwareDescrambler(program);
