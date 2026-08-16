@@ -1476,7 +1476,7 @@ RESULT eDVBServicePlay::start()
 		}
 		m_event(this, evStart);
 	}
-	else if ((csa_is_auto() || csa_from_whitelist()) && !m_is_stream && scrambled)
+	else if (csa_is_auto() && !m_is_stream && scrambled)
 	{
 		// Setup speculative software descrambling for encrypted Live-TV
 		setupSpeculativeDescrambling();
