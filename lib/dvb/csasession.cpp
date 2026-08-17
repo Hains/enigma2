@@ -176,7 +176,7 @@ void eDVBCSASession::startECMMonitor(iDVBDemux *demux, uint16_t ecm_pid, uint16_
 	m_ecm_reader = reader;
 
     // Test
-	if (csa_from_whitelist())
+	if (csa_from_whitelist() && !csa_is_auto())
 	{
 		eDebug("[eDVBCSASession] CSA-ALT detection by whitelist! Activating software descrambling");
 
