@@ -175,7 +175,7 @@ void eDVBCSASession::startECMMonitor(iDVBDemux *demux, uint16_t ecm_pid, uint16_
 
 	m_ecm_reader = reader;
 
- 	// Connect callback
+	// Connect callback
 	m_ecm_reader->connectRead(sigc::mem_fun(*this, &eDVBCSASession::ecmDataReceived), m_ecm_conn);
 
 	// Setup filter for ECM (table_id 0x80 and 0x81)
