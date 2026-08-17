@@ -1249,7 +1249,7 @@ void eDVBServicePlay::serviceEvent(int event)
 		}
 
 		// Note: m_soft_decoder exists speculatively, but only blocks updateDecoder when session is active
-		if (!m_timeshift_active && !m_csa_session && m_csa_session->isActive())
+		if (!m_timeshift_active && !(m_csa_session && m_csa_session->isActive()))
 			updateDecoder();
 		else if (m_csa_session && m_csa_session->isActive())
 		{
