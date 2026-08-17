@@ -829,7 +829,7 @@ def InitUsageConfig():
 	config.misc.softcam_softcsa = ConfigSelection(default=0, choices=[
 		(0, _("Off")),
 		(1, _("Whitelist")),
-		(2, _("Automatic"))
+		(2, _("Auto"))
 	])
 	config.misc.softcam_use_softcsa = ConfigYesNo(default=False)
 
