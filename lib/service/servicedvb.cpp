@@ -1637,7 +1637,7 @@ RESULT eDVBServicePlay::setFastForward_internal(int ratio, bool final_seek)
 	m_fastforward = ffratio;
 
 	// Check SoftDecoder first (only if session is active AND not in timeshift playback)
-	if (m_soft_decoder && (m_csa_session && m_csa_session->isActive() && !m_timeshift_active)
+	if (m_soft_decoder && m_csa_session && m_csa_session->isActive() && !m_timeshift_active)
 	{
 		if (ffratio == 0)
 			; /* return m_soft_decoder->play(); is done in caller*/
