@@ -71,7 +71,6 @@ public:
 	bool isEcmModeDetected() const { return m_ecm_mode_detected; }
 	bool isEcmAnalyzed() const { return m_ecm_analyzed; }  // true once ECM was analyzed
 	bool isCsaAlt() const { return m_csa_alt; }            // true if CSA-ALT was detected
-	bool csa_is_auto() { return eConfigManager::getConfigIntValue("config.misc.softcam_softcsa", 0) == 2; }
 	bool csa_from_whitelist() { return eConfigManager::getConfigBoolValue("config.misc.softcam_use_softcsa", false) == true; }
 
 	/**
